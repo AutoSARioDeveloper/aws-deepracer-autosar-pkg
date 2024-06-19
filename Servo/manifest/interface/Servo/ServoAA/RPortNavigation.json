@@ -1,0 +1,27 @@
+{
+    "generation-by" : "PARA, PopcornSAR",
+    "autosar-version" : "R20-11",
+    "manifest-type" : "service-instance-manifest",
+    "port-type" : "rport",
+    "instance-specifier" : "Servo/ServoAA/RPortNavigation",
+    "service-protocol" : "someip",
+    "service-name" : "Navigation",
+    "service-id" : "84",
+    "instance-id" : "ANY",
+    "major-version" : "1",
+    "minor-version" : "ANY",
+    "client-id" : "5",
+    "events" : [
+        {
+            "name" : "TimingEvent_100ms",
+            "event-id" : "1",
+            "transport" : "udp",
+            "max-segment-len" : "0",
+            "separation-time" : "0.0"
+        }
+    ],
+    "methods" : [
+    ],
+    "fields" : [
+    ]
+}
