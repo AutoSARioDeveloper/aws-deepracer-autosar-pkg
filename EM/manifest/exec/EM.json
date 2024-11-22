@@ -10,11 +10,11 @@
     "functional-cluster-affiliation" : "none",
     "startup-config" : {
     	"policy" : "other",
-    	"priority" : "0",
+    	"priority" : "undefined",
     	"program-argument" : "",
-    	"startup-timeout" : "0.0",
-    	"termination-timeout" : "0.0",
-    	"termination-behavior" : "not-self-terminating",
+    	"startup-timeout" : "undefined",
+    	"termination-timeout" : "undefined",
+    	"termination-behavior" : "undefined",
     	"environment-variables" : [
     	]
     },
@@ -23,20 +23,17 @@
     	"mem-usage" : "undefined"
     },
     "state-dependencies" : [
-        {
-            "function-group" : "MachineFG",
-            "state" : "Startup"
-        }
     ],
     "execution-dependencies" : [
     ],
     "log-trace-configuration" : {
-    	"default-log-level" : "none",
+    	"default-log-level" : "error",
     	"log-modes" : [
+    	    "console"
     	],
-    	"application-id" : "undefined",
+    	"application-id" : "EM",
     	"application-description" : "undefined",
-    	"context-id" : "undefined",
+    	"context-id" : "EM",
     	"file-path" : "undefined"
     },
     "core-affinity" : [

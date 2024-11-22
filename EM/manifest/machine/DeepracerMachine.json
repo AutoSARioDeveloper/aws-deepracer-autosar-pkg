@@ -10,10 +10,6 @@
     "endpoints" : [
         {
             "connector" : "eth0",
-            "ip-address" : "172.31.13.179"
-        },
-        {
-            "connector" : "lo",
             "ip-address" : "127.0.0.1"
         }
     ],

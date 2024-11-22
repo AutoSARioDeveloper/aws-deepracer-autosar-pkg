@@ -4,7 +4,7 @@
     "manifest-type" : "execution-manifest",
     "process-name" : "Camera",
     "executable" : "Camera",
-    "executable-version" : "0.0.1",
+    "executable-version" : "1.0.0",
     "reporting-behavior" : "report",
     "num-of-restart-attempts" : "0",
     "functional-cluster-affiliation" : "none",
@@ -12,8 +12,8 @@
     	"policy" : "other",
     	"priority" : "0",
     	"program-argument" : "",
-    	"startup-timeout" : "0.0",
-    	"termination-timeout" : "0.0",
+    	"startup-timeout" : "5.0",
+    	"termination-timeout" : "1.0",
     	"termination-behavior" : "not-self-terminating",
     	"environment-variables" : [
     	]
@@ -24,19 +24,24 @@
     },
     "state-dependencies" : [
         {
-            "function-group" : "DeepRacerFG",
-            "state" : "Vehicle"
+            "function-group" : "MachineFG",
+            "state" : "Startup"
         }
     ],
     "execution-dependencies" : [
+        {
+            "dependent-process" : "CM",
+            "state" : "Running"
+        }
     ],
     "log-trace-configuration" : {
-    	"default-log-level" : "none",
+    	"default-log-level" : "info",
     	"log-modes" : [
+    	    "console"
     	],
-    	"application-id" : "undefined",
+    	"application-id" : "CAM",
     	"application-description" : "undefined",
-    	"context-id" : "undefined",
+    	"context-id" : "CAM",
     	"file-path" : "undefined"
     },
     "core-affinity" : [

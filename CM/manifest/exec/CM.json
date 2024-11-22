@@ -12,8 +12,8 @@
     	"policy" : "other",
     	"priority" : "0",
     	"program-argument" : "",
-    	"startup-timeout" : "0.0",
-    	"termination-timeout" : "0.0",
+    	"startup-timeout" : "1.0",
+    	"termination-timeout" : "1.0",
     	"termination-behavior" : "not-self-terminating",
     	"environment-variables" : [
     	]
@@ -26,17 +26,30 @@
         {
             "function-group" : "MachineFG",
             "state" : "Startup"
+        },
+        {
+            "function-group" : "MachineFG",
+            "state" : "Restart"
+        },
+        {
+            "function-group" : "MachineFG",
+            "state" : "Shutdown"
+        },
+        {
+            "function-group" : "MachineFG",
+            "state" : "Verify"
         }
     ],
     "execution-dependencies" : [
     ],
     "log-trace-configuration" : {
-    	"default-log-level" : "none",
+    	"default-log-level" : "error",
     	"log-modes" : [
+    	    "console"
     	],
-    	"application-id" : "undefined",
+    	"application-id" : "CM",
     	"application-description" : "undefined",
-    	"context-id" : "undefined",
+    	"context-id" : "CM",
     	"file-path" : "undefined"
     },
     "core-affinity" : [

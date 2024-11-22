@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.16)
 # applications.
 # ============================================================================
 set(PARA_APP_NAME SensorFusion)
-set(PARA_APP_VERSION 0.0.1)
+set(PARA_APP_VERSION 1.0.0)
 set(PARA_APP_GEN_DIR ${CMAKE_CURRENT_SOURCE_DIR})
  
 Para_App()

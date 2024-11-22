@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Directories
+build/
+.build/
+.idea/
+Samples/AdaptiveApplications/build
+Samples/AdaptiveApplications/.build
+Samples/AdaptiveApplications/cmake-build-debug
+Samples/AdaptiveApplications/.idea/
