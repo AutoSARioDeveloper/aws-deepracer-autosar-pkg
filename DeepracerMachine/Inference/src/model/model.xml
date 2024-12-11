@@ -1,0 +1,1084 @@
+<?xml version="1.0" ?>
+<net name="model" version="10">
+	<layers>
+		<layer id="0" name="main_level/agent/main/online/network_1/sub/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="0" size="2" shape="1,1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="1" name="main_level/agent/main/online/network_0/SECTOR_LIDAR/SECTOR_LIDAR" type="Parameter" version="opset1">
+			<data shape="1,8" element_type="f16"/>
+			<output>
+				<port id="0" precision="FP16">
+					<dim>1</dim>
+					<dim>8</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="2" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/truediv/reciprocal_893/copy_const" type="Const" version="opset1">
+			<data offset="2" size="2" shape="1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="3" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/truediv" type="Multiply" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>8</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>8</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="4" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/sub/neg_905/copy_const" type="Const" version="opset1">
+			<data offset="4" size="2" shape="1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="5" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/sub" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>8</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>8</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="6" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_0/MatMul/1_port_transpose1302_const" type="Const" version="opset1">
+			<data offset="6" size="4096" shape="256,8" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>256</dim>
+					<dim>8</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="7" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_0/MatMul" type="MatMul" version="opset1">
+			<data transpose_a="False" transpose_b="True"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>8</dim>
+				</port>
+				<port id="1">
+					<dim>256</dim>
+					<dim>8</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="8" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_0/bias/read/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="4102" size="512" shape="1,256" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="9" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_0/BiasAdd/Add" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="10" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/BatchnormActivationDropout_1_activation" type="ReLU" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="11" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_2/MatMul/1_port_transpose1294_const" type="Const" version="opset1">
+			<data offset="4614" size="131072" shape="256,256" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>256</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="12" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_2/MatMul" type="MatMul" version="opset1">
+			<data transpose_a="False" transpose_b="True"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+				<port id="1">
+					<dim>256</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="13" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_2/bias/read/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="135686" size="512" shape="1,256" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="14" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_2/BiasAdd/Add" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="15" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/BatchnormActivationDropout_3_activation" type="ReLU" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="16" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/flatten_2/Reshape/Cast_11976_const" type="Const" version="opset1">
+			<data offset="136198" size="16" shape="2" element_type="i64"/>
+			<output>
+				<port id="1" precision="I64">
+					<dim>2</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="17" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/flatten_2/Reshape" type="Reshape" version="opset1">
+			<data special_zero="False"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+				<port id="1">
+					<dim>2</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="18" name="main_level/agent/main/online/network_0/STEREO_CAMERAS/STEREO_CAMERAS" type="Parameter" version="opset1">
+			<data shape="1,2,120,160" element_type="f16"/>
+			<output>
+				<port id="0" precision="FP16">
+					<dim>1</dim>
+					<dim>2</dim>
+					<dim>120</dim>
+					<dim>160</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="19" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/truediv/reciprocal_899/copy_const" type="Const" version="opset1">
+			<data offset="136214" size="2" shape="1,1,1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="20" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/truediv" type="Multiply" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>2</dim>
+					<dim>120</dim>
+					<dim>160</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>2</dim>
+					<dim>120</dim>
+					<dim>160</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="21" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/sub/neg_911/copy_const" type="Const" version="opset1">
+			<data offset="136216" size="2" shape="1,1,1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="22" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/sub" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>2</dim>
+					<dim>120</dim>
+					<dim>160</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>2</dim>
+					<dim>120</dim>
+					<dim>160</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="23" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_0/kernel/read/Output_0/Data__const" type="Const" version="opset1">
+			<data offset="136218" size="8192" shape="32,2,8,8" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>32</dim>
+					<dim>2</dim>
+					<dim>8</dim>
+					<dim>8</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="24" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_0/Conv2D" type="Convolution" version="opset1">
+			<data auto_pad="valid" strides="4,4" dilations="1,1" pads_begin="0,0" pads_end="0,0" output_padding="0,0"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>2</dim>
+					<dim>120</dim>
+					<dim>160</dim>
+				</port>
+				<port id="1">
+					<dim>32</dim>
+					<dim>2</dim>
+					<dim>8</dim>
+					<dim>8</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>32</dim>
+					<dim>29</dim>
+					<dim>39</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="25" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_0/bias/read/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="144410" size="64" shape="1,32,1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>32</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="26" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_0/BiasAdd/Add" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>32</dim>
+					<dim>29</dim>
+					<dim>39</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>32</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>32</dim>
+					<dim>29</dim>
+					<dim>39</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="27" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/BatchnormActivationDropout_1_activation" type="ReLU" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>32</dim>
+					<dim>29</dim>
+					<dim>39</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>32</dim>
+					<dim>29</dim>
+					<dim>39</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="28" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_2/kernel/read/Output_0/Data__const" type="Const" version="opset1">
+			<data offset="144474" size="65536" shape="64,32,4,4" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>64</dim>
+					<dim>32</dim>
+					<dim>4</dim>
+					<dim>4</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="29" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_2/Conv2D" type="Convolution" version="opset1">
+			<data auto_pad="valid" strides="2,2" dilations="1,1" pads_begin="0,0" pads_end="0,0" output_padding="0,0"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>32</dim>
+					<dim>29</dim>
+					<dim>39</dim>
+				</port>
+				<port id="1">
+					<dim>64</dim>
+					<dim>32</dim>
+					<dim>4</dim>
+					<dim>4</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>13</dim>
+					<dim>18</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="30" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_2/bias/read/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="210010" size="128" shape="1,64,1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="31" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_2/BiasAdd/Add" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>13</dim>
+					<dim>18</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>13</dim>
+					<dim>18</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="32" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/BatchnormActivationDropout_3_activation" type="ReLU" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>13</dim>
+					<dim>18</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>13</dim>
+					<dim>18</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="33" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_4/kernel/read/Output_0/Data__const" type="Const" version="opset1">
+			<data offset="210138" size="73728" shape="64,64,3,3" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>64</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="34" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_4/Conv2D" type="Convolution" version="opset1">
+			<data auto_pad="valid" strides="1,1" dilations="1,1" pads_begin="0,0" pads_end="0,0" output_padding="0,0"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>13</dim>
+					<dim>18</dim>
+				</port>
+				<port id="1">
+					<dim>64</dim>
+					<dim>64</dim>
+					<dim>3</dim>
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>11</dim>
+					<dim>16</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="35" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_4/bias/read/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="283866" size="128" shape="1,64,1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="36" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/Conv2d_4/BiasAdd/Add" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>11</dim>
+					<dim>16</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>11</dim>
+					<dim>16</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="37" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/BatchnormActivationDropout_5_activation" type="ReLU" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>11</dim>
+					<dim>16</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>11</dim>
+					<dim>16</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="38" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/BatchnormActivationDropout_5_activation/Transpose/Cast_11986_const" type="Const" version="opset1">
+			<data offset="283994" size="32" shape="4" element_type="i64"/>
+			<output>
+				<port id="1" precision="I64">
+					<dim>4</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="39" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/BatchnormActivationDropout_5_activation/Transpose" type="Transpose" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>64</dim>
+					<dim>11</dim>
+					<dim>16</dim>
+				</port>
+				<port id="1">
+					<dim>4</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>11</dim>
+					<dim>16</dim>
+					<dim>64</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="40" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/flatten_3/Reshape/Cast_11984_const" type="Const" version="opset1">
+			<data offset="284026" size="16" shape="2" element_type="i64"/>
+			<output>
+				<port id="1" precision="I64">
+					<dim>2</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="41" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/flatten_3/Reshape" type="Reshape" version="opset1">
+			<data special_zero="False"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>11</dim>
+					<dim>16</dim>
+					<dim>64</dim>
+				</port>
+				<port id="1">
+					<dim>2</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>11264</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="42" name="main_level/agent/main/online/network_1/merger" type="Concat" version="opset1">
+			<data axis="1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>256</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>11264</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>11520</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="43" name="main_level/agent/main/online/network_1/middleware_fc_embedder/Dense_0/MatMul/1_port_transpose1290_const" type="Const" version="opset1">
+			<data offset="284042" size="11796480" shape="512,11520" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>512</dim>
+					<dim>11520</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="44" name="main_level/agent/main/online/network_1/middleware_fc_embedder/Dense_0/MatMul" type="MatMul" version="opset1">
+			<data transpose_a="False" transpose_b="True"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>11520</dim>
+				</port>
+				<port id="1">
+					<dim>512</dim>
+					<dim>11520</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="45" name="main_level/agent/main/online/network_1/middleware_fc_embedder/Dense_0/bias/read/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="12080522" size="1024" shape="1,512" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="46" name="main_level/agent/main/online/network_1/middleware_fc_embedder/Dense_0/BiasAdd/Add" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="47" name="main_level/agent/main/online/network_1/middleware_fc_embedder/BatchnormActivationDropout_1_activation" type="ReLU" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</input>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="48" name="main_level/agent/main/online/network_1/StopGradient/input/ExpandDims_/Dims/Output_0/Data__const" type="Const" version="opset1">
+			<data offset="12081546" size="8" shape="1" element_type="i64"/>
+			<output>
+				<port id="1" precision="I64">
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="49" name="main_level/agent/main/online/network_1/StopGradient/input/ExpandDims_/Unsqueeze" type="Unsqueeze" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="50" name="main_level/agent/main/online/network_1/mul" type="Multiply" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="51" name="main_level/agent/main/online/network_1/gradients_from_head_0-0_rescalers/read/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="12081554" size="2" shape="1,1,1" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="52" name="main_level/agent/main/online/network_1/mul_1/y/ExpandDims_/Dims/Output_0/Data__const" type="Const" version="opset1">
+			<data offset="12081546" size="8" shape="1" element_type="i64"/>
+			<output>
+				<port id="1" precision="I64">
+					<dim>1</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="53" name="main_level/agent/main/online/network_1/mul_1/y/ExpandDims_/Unsqueeze" type="Unsqueeze" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="54" name="main_level/agent/main/online/network_1/mul_1" type="Multiply" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>1</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="55" name="main_level/agent/main/online/network_1/add" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="56" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_11978_const" type="Const" version="opset1">
+			<data offset="12081556" size="24" shape="3" element_type="i64"/>
+			<output>
+				<port id="1" precision="I64">
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="57" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_21980_const" type="Const" version="opset1">
+			<data offset="12081580" size="24" shape="3" element_type="i64"/>
+			<output>
+				<port id="1" precision="I64">
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="58" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_31982_const" type="Const" version="opset1">
+			<data offset="12081604" size="24" shape="3" element_type="i64"/>
+			<output>
+				<port id="1" precision="I64">
+					<dim>3</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="59" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice" type="StridedSlice" version="opset1">
+			<data new_axis_mask="0,0,0" shrink_axis_mask="1,0,0" ellipsis_mask="0,0,0" begin_mask="0,1,1" end_mask="0,1,1"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+				<port id="1">
+					<dim>3</dim>
+				</port>
+				<port id="2">
+					<dim>3</dim>
+				</port>
+				<port id="3">
+					<dim>3</dim>
+				</port>
+			</input>
+			<output>
+				<port id="4" precision="FP16">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="60" name="main_level/agent/main/online/network_1/ppo_head_0/policy_mean/MatMul/1_port_transpose1298_const" type="Const" version="opset1">
+			<data offset="12081628" size="2048" shape="2,512" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>2</dim>
+					<dim>512</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="61" name="main_level/agent/main/online/network_1/ppo_head_0/policy_mean/MatMul" type="MatMul" version="opset1">
+			<data transpose_a="False" transpose_b="True"/>
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>512</dim>
+				</port>
+				<port id="1">
+					<dim>2</dim>
+					<dim>512</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>2</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="62" name="main_level/agent/main/online/network_1/ppo_head_0/policy_mean/bias/read/Output_0/Data_/copy_const" type="Const" version="opset1">
+			<data offset="12083676" size="4" shape="1,2" element_type="f16"/>
+			<output>
+				<port id="1" precision="FP16">
+					<dim>1</dim>
+					<dim>2</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="63" name="main_level/agent/main/online/network_1/ppo_head_0/policy_mean/BiasAdd/Add" type="Add" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>2</dim>
+				</port>
+				<port id="1">
+					<dim>1</dim>
+					<dim>2</dim>
+				</port>
+			</input>
+			<output>
+				<port id="2" precision="FP16">
+					<dim>1</dim>
+					<dim>2</dim>
+				</port>
+			</output>
+		</layer>
+		<layer id="64" name="main_level/agent/main/online/network_1/ppo_head_0/policy/sink_port_0" type="Result" version="opset1">
+			<input>
+				<port id="0">
+					<dim>1</dim>
+					<dim>2</dim>
+				</port>
+			</input>
+		</layer>
+	</layers>
+	<edges>
+		<edge from-layer="1" from-port="0" to-layer="3" to-port="0"/>
+		<edge from-layer="2" from-port="1" to-layer="3" to-port="1"/>
+		<edge from-layer="3" from-port="2" to-layer="5" to-port="0"/>
+		<edge from-layer="4" from-port="1" to-layer="5" to-port="1"/>
+		<edge from-layer="5" from-port="2" to-layer="7" to-port="0"/>
+		<edge from-layer="6" from-port="1" to-layer="7" to-port="1"/>
+		<edge from-layer="7" from-port="2" to-layer="9" to-port="0"/>
+		<edge from-layer="8" from-port="1" to-layer="9" to-port="1"/>
+		<edge from-layer="9" from-port="2" to-layer="10" to-port="0"/>
+		<edge from-layer="10" from-port="1" to-layer="12" to-port="0"/>
+		<edge from-layer="11" from-port="1" to-layer="12" to-port="1"/>
+		<edge from-layer="12" from-port="2" to-layer="14" to-port="0"/>
+		<edge from-layer="13" from-port="1" to-layer="14" to-port="1"/>
+		<edge from-layer="14" from-port="2" to-layer="15" to-port="0"/>
+		<edge from-layer="15" from-port="1" to-layer="17" to-port="0"/>
+		<edge from-layer="16" from-port="1" to-layer="17" to-port="1"/>
+		<edge from-layer="18" from-port="0" to-layer="20" to-port="0"/>
+		<edge from-layer="19" from-port="1" to-layer="20" to-port="1"/>
+		<edge from-layer="20" from-port="2" to-layer="22" to-port="0"/>
+		<edge from-layer="21" from-port="1" to-layer="22" to-port="1"/>
+		<edge from-layer="22" from-port="2" to-layer="24" to-port="0"/>
+		<edge from-layer="23" from-port="1" to-layer="24" to-port="1"/>
+		<edge from-layer="24" from-port="2" to-layer="26" to-port="0"/>
+		<edge from-layer="25" from-port="1" to-layer="26" to-port="1"/>
+		<edge from-layer="26" from-port="2" to-layer="27" to-port="0"/>
+		<edge from-layer="27" from-port="1" to-layer="29" to-port="0"/>
+		<edge from-layer="28" from-port="1" to-layer="29" to-port="1"/>
+		<edge from-layer="29" from-port="2" to-layer="31" to-port="0"/>
+		<edge from-layer="30" from-port="1" to-layer="31" to-port="1"/>
+		<edge from-layer="31" from-port="2" to-layer="32" to-port="0"/>
+		<edge from-layer="32" from-port="1" to-layer="34" to-port="0"/>
+		<edge from-layer="33" from-port="1" to-layer="34" to-port="1"/>
+		<edge from-layer="34" from-port="2" to-layer="36" to-port="0"/>
+		<edge from-layer="35" from-port="1" to-layer="36" to-port="1"/>
+		<edge from-layer="36" from-port="2" to-layer="37" to-port="0"/>
+		<edge from-layer="37" from-port="1" to-layer="39" to-port="0"/>
+		<edge from-layer="38" from-port="1" to-layer="39" to-port="1"/>
+		<edge from-layer="39" from-port="2" to-layer="41" to-port="0"/>
+		<edge from-layer="40" from-port="1" to-layer="41" to-port="1"/>
+		<edge from-layer="17" from-port="2" to-layer="42" to-port="0"/>
+		<edge from-layer="41" from-port="2" to-layer="42" to-port="1"/>
+		<edge from-layer="42" from-port="2" to-layer="44" to-port="0"/>
+		<edge from-layer="43" from-port="1" to-layer="44" to-port="1"/>
+		<edge from-layer="44" from-port="2" to-layer="46" to-port="0"/>
+		<edge from-layer="45" from-port="1" to-layer="46" to-port="1"/>
+		<edge from-layer="46" from-port="2" to-layer="47" to-port="0"/>
+		<edge from-layer="47" from-port="1" to-layer="49" to-port="0"/>
+		<edge from-layer="48" from-port="1" to-layer="49" to-port="1"/>
+		<edge from-layer="0" from-port="1" to-layer="50" to-port="0"/>
+		<edge from-layer="49" from-port="2" to-layer="50" to-port="1"/>
+		<edge from-layer="47" from-port="1" to-layer="53" to-port="0"/>
+		<edge from-layer="52" from-port="1" to-layer="53" to-port="1"/>
+		<edge from-layer="51" from-port="1" to-layer="54" to-port="0"/>
+		<edge from-layer="53" from-port="2" to-layer="54" to-port="1"/>
+		<edge from-layer="50" from-port="2" to-layer="55" to-port="0"/>
+		<edge from-layer="54" from-port="2" to-layer="55" to-port="1"/>
+		<edge from-layer="55" from-port="2" to-layer="59" to-port="0"/>
+		<edge from-layer="56" from-port="1" to-layer="59" to-port="1"/>
+		<edge from-layer="57" from-port="1" to-layer="59" to-port="2"/>
+		<edge from-layer="58" from-port="1" to-layer="59" to-port="3"/>
+		<edge from-layer="59" from-port="4" to-layer="61" to-port="0"/>
+		<edge from-layer="60" from-port="1" to-layer="61" to-port="1"/>
+		<edge from-layer="61" from-port="2" to-layer="63" to-port="0"/>
+		<edge from-layer="62" from-port="1" to-layer="63" to-port="1"/>
+		<edge from-layer="63" from-port="2" to-layer="64" to-port="0"/>
+	</edges>
+	<meta_data>
+		<MO_version value="2021.1.0-1237-bece22ac675-releases/2021/1"/>
+		<cli_parameters>
+			<caffe_parser_path value="DIR"/>
+			<data_type value="FP16"/>
+			<disable_fusing value="True"/>
+			<disable_gfusing value="True"/>
+			<disable_nhwc_to_nchw value="False"/>
+			<disable_omitting_optional value="False"/>
+			<disable_resnet_optimization value="False"/>
+			<disable_weights_compression value="False"/>
+			<enable_concat_optimization value="False"/>
+			<enable_flattening_nested_params value="False"/>
+			<enable_ssd_gluoncv value="False"/>
+			<extensions value="DIR"/>
+			<framework value="tf"/>
+			<freeze_placeholder_with_value value="{}"/>
+			<generate_deprecated_IR_V7 value="False"/>
+			<input value="main_level/agent/main/online/network_0/SECTOR_LIDAR/SECTOR_LIDAR,main_level/agent/main/online/network_0/STEREO_CAMERAS/STEREO_CAMERAS"/>
+			<input_model value="DIR/model.pb"/>
+			<input_model_is_text value="False"/>
+			<input_shape value="[1,8],[1,120,160,2]"/>
+			<k value="DIR/CustomLayersMapping.xml"/>
+			<keep_shape_ops value="True"/>
+			<legacy_mxnet_model value="False"/>
+			<log_level value="ERROR"/>
+			<mean_scale_values value="{}"/>
+			<mean_values value="()"/>
+			<model_name value="DIR"/>
+			<output_dir value="DIR"/>
+			<placeholder_data_types value="{}"/>
+			<placeholder_shapes value="{'main_level/agent/main/online/network_0/SECTOR_LIDAR/SECTOR_LIDAR': array([1, 8]), 'main_level/agent/main/online/network_0/STEREO_CAMERAS/STEREO_CAMERAS': array([  1, 120, 160,   2])}"/>
+			<progress value="False"/>
+			<remove_memory value="False"/>
+			<remove_output_softmax value="False"/>
+			<reverse_input_channels value="False"/>
+			<save_params_from_nd value="False"/>
+			<scale value="1.0"/>
+			<scale_values value="()"/>
+			<silent value="False"/>
+			<static_shape value="False"/>
+			<stream_output value="False"/>
+			<unset unset_cli_parameters="batch, counts, finegrain_fusing, input_checkpoint, input_meta_graph, input_proto, input_symbol, mean_file, mean_file_offsets, move_to_preprocess, nd_prefix_name, output, pretrained_model_name, saved_model_dir, saved_model_tags, tensorboard_logdir, tensorflow_custom_layer_libraries, tensorflow_custom_operations_config_update, tensorflow_object_detection_api_pipeline_config, tensorflow_use_custom_operations_config, transformations_config"/>
+		</cli_parameters>
+	</meta_data>
+</net>
