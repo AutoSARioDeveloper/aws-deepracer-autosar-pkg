@@ -36,6 +36,9 @@ int main(int argc, char *argv[], char* envp[])
 {
     bool proceed{true};
     bool araInitialized{true};
+
+    // Initialize ROS before AUTOSAR components
+    ros::init(argc, argv, "sensor_data_camera");
     
     // initialize AUTOSAR adaptive application
     auto appInit = ara::core::Initialize();
@@ -44,22 +47,22 @@ int main(int argc, char *argv[], char* envp[])
         proceed = false;
         araInitialized = false;
     }
-    
+
     if (araInitialized)
     {
         ara::log::Logger& appLogger{ara::log::CreateLogger("CAM", "Camera's main function")};
-        
+
         // regist signals
         std::signal(SIGTERM, SignalHandler);
         std::signal(SIGINT, SignalHandler);
-        
+
         // declaration of software components
         camera::aa::Camera swcCamera;
         g_swcCamera = &swcCamera;
-        
+
         // initialize software component
         proceed = swcCamera.Initialize();
-        
+
         if (proceed)
         {
             // report execution state
@@ -74,14 +77,27 @@ int main(int argc, char *argv[], char* envp[])
                 appLogger.LogError() << "Unable to report execution state";
                 araInitialized = false;
             }
+
+            std::string modeStr = (argc > 1) ? argv[1] : "valid";
+            camera::aa::VehicleMode mode;
+
+            if (modeStr == "deepracer") {
+                mode = camera::aa::VehicleMode::isDeepRacer;
+            } else if (modeStr == "simulation") {
+                mode = camera::aa::VehicleMode::isSimulation;
+            } else {
+                mode = camera::aa::VehicleMode::isInvalid;
+                appLogger.LogWarn() << "Invalid mode, defaulting to 'isInvalid'";
+            }
+
             // start software component
-            swcCamera.Start();
+            swcCamera.Start(mode);
         }
         else
         {
             appLogger.LogError() << "Unable to start application";
         }
-        
+
         // de-initialize AUTOSAR adaptive application
         auto appDeinit = ara::core::Deinitialize();
         if (!appDeinit.HasValue())
@@ -89,7 +105,7 @@ int main(int argc, char *argv[], char* envp[])
             araInitialized = false;
         }
     }
-    
+
     return (araInitialized && proceed) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
- 
+

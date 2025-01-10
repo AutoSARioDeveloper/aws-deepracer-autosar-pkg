@@ -36,7 +36,10 @@ int main(int argc, char *argv[], char* envp[])
 {
     bool proceed{true};
     bool araInitialized{true};
-    
+
+    // Initialize ROS before AUTOSAR components
+    ros::init(argc, argv, "sensor_data_lidar");
+
     // initialize AUTOSAR adaptive application
     auto appInit = ara::core::Initialize();
     if (!appInit.HasValue())
@@ -74,8 +77,21 @@ int main(int argc, char *argv[], char* envp[])
                 appLogger.LogError() << "Unable to report execution state";
                 araInitialized = false;
             }
+
+            std::string modeStr = (argc > 1) ? argv[1] : "valid";
+            lidar::aa::VehicleMode mode;
+
+            if (modeStr == "deepracer") {
+                mode = lidar::aa::VehicleMode::isDeepRacer;
+            } else if (modeStr == "simulation") {
+                mode = lidar::aa::VehicleMode::isSimulation;
+            } else {
+                mode = lidar::aa::VehicleMode::isInvalid;
+                appLogger.LogWarn() << "Invalid mode, defaulting to 'isInvalid'";
+            }
+
             // start software component
-            swcLidar.Start();
+            swcLidar.Start(mode);
         }
         else
         {

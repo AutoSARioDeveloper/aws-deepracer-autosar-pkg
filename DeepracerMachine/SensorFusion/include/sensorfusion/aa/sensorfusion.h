@@ -66,6 +66,8 @@ private:
     
     std::mutex lidarMutex;
 
+    std::mutex data_mutex;
+    
     /// @brief Pool of port
     para::swc::PortPool m_workers;
     

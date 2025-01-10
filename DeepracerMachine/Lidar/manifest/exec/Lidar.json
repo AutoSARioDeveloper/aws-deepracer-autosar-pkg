@@ -11,7 +11,7 @@
     "startup-config" : {
     	"policy" : "other",
     	"priority" : "0",
-    	"program-argument" : "",
+    	"program-argument" : "simulation",
     	"startup-timeout" : "5.0",
     	"termination-timeout" : "1.0",
     	"termination-behavior" : "not-self-terminating",
@@ -35,7 +35,7 @@
         }
     ],
     "log-trace-configuration" : {
-    	"default-log-level" : "info",
+    	"default-log-level" : "error",
     	"log-modes" : [
     	    "console"
     	],

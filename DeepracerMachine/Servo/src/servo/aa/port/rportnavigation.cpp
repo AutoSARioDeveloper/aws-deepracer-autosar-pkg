@@ -26,8 +26,6 @@ RPortNavigation::RPortNavigation()
     , m_running{false}
     , m_found{false}
 {
-    m_servoMgr = std::make_unique<PWM::ServoMgr>();
-    m_ledMgr = std::make_unique<PWM::LedMgr>();
 }
  
 RPortNavigation::~RPortNavigation()
@@ -50,7 +48,6 @@ void RPortNavigation::Start()
     if (find.HasValue())
     {
         m_logger.LogVerbose() << "RPortNavigation::Start::StartFindService";
-        m_servoMgr->setGPIOActivation();
     }
     else
     {
@@ -79,8 +76,6 @@ void RPortNavigation::Terminate()
         m_found = false;
         
         m_logger.LogVerbose() << "RPortNavigation::Terminate::StopFindService";
-
-        m_servoMgr->servoSubscriber(0, 0); 
     }
 }
  
@@ -222,18 +217,26 @@ void RPortNavigation::ReceiveEventNavEventCyclic()
                 }
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
  
 void RPortNavigation::ReadDataNavEvent(ara::com::SamplePtr<deepracer::service::navigation::proxy::events::NavEvent::SampleType const> samplePtr)
 {
     auto data = *samplePtr.Get();
-    m_servoMgr->servoSubscriber(data.data.throttle*0.3, data.data.angle / 30.0f);
-    m_logger.LogInfo() << data.data.throttle*0.3;
-    m_logger.LogInfo() << data.data.angle / 30.0f;
+    
+    if (m_receiveEventNavEventHandler != nullptr)
+    {
+        m_receiveEventNavEventHandler(data);
+    }
 }
- 
+
+void RPortNavigation::SetReceiveEventNavEventHandler(
+    std::function<void(const deepracer::service::navigation::proxy::events::NavEvent::SampleType&)> handler)
+{
+    m_receiveEventNavEventHandler = handler;
+}
+
 } /// namespace port
 } /// namespace aa
 } /// namespace servo

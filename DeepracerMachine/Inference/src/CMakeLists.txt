@@ -32,9 +32,9 @@ target_link_libraries(${PARA_APP_NAME}
                             PRIVATE
                             pthread
                             dl
-                            inference_engine
-                            inference_engine_legacy
-                            inference_engine_transformations
+                            /opt/intel/openvino_2021/inference_engine/lib/intel64/libinference_engine.so
+                            /opt/intel/openvino_2021/inference_engine/lib/intel64/libinference_engine_legacy.so
+                            /opt/intel/openvino_2021/inference_engine/lib/intel64/libinference_engine_transformations.so
                             ${OpenCV_LIBS}
 )
 # ============================================================================

@@ -27,12 +27,29 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <ros/ros.h>
+#include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/Image.h>
+#include <cv_bridge/cv_bridge.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <unistd.h>
  
 namespace camera
 {
 namespace aa
 {
  
+enum class VehicleMode : uint16_t {
+    isDeepRacer = 0,
+    isSimulation = 1,
+    isInvalid = 2
+};
+
+inline uint16_t toUint16(VehicleMode mode) {
+    return static_cast<uint16_t>(mode);
+}
+
 class Camera
 {
 public:
@@ -46,13 +63,21 @@ public:
     bool Initialize();
     
     /// @brief Start software component
-    void Start();
+    void Start(VehicleMode mode);
     
     /// @brief Terminate software component
     void Terminate();
 
-    bool HandleCameraData();
- 
+    bool HandleCamera();
+
+    bool HandleSimulationData();
+
+    bool HandleDeepracerData();
+
+    void initUDP();
+
+    void cameraCallback(const sensor_msgs::Image::ConstPtr& msg, bool is_left);
+
 private:
     /// @brief Run software component
     void Run();
@@ -68,6 +93,14 @@ private:
     
     /// @brief Instance of Port {Camera.PPortCamera}
     std::shared_ptr<camera::aa::port::PPortCamera> m_PPortCamera;
+
+    ros::NodeHandle nh;
+    ros::Subscriber camera_sub_l;
+    ros::Subscriber camera_sub_r;
+    cv_bridge::CvImageConstPtr left_image_buffer;
+    cv_bridge::CvImageConstPtr right_image_buffer;
+    struct sockaddr_in server_addr_;
+    VehicleMode m_vehicleMode;
 };
  
 } /// namespace aa

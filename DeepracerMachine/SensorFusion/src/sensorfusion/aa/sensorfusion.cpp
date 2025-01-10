@@ -87,7 +87,7 @@ void SensorFusion::Run()
     });
 
     while (!camStarted || !lidarStarted) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 
     m_workers.Async([this] {
@@ -143,13 +143,23 @@ void SensorFusion::OnReceiveLidarEvent(const deepracer::service::lidar::proxy::e
 void SensorFusion::HandleSensorData() {
     while (m_running) {
         std::shared_ptr<deepracer::serviceinterfacecam::StereoCamera> cameraData;
+        {
+            std::lock_guard<std::mutex> lock(data_mutex);
+            while (!m_latestCameraData) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                continue;
 
-        while (!m_latestCameraData) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+            cameraData = std::move(m_latestCameraData);
+            if (m_latestCameraData) {
+                m_latestCameraData.reset();
+            }
         }
-
-        cameraData = m_latestCameraData;
-        m_latestCameraData.reset();
+        
+        if (!cameraData) {
+            m_logger.LogWarn() << "HandleSensorData: Camera data is null after reset.";
+            continue;
+        }
 
         auto lidarData = FindClosestLidarData(cameraData->timestamp);
 
@@ -162,11 +172,12 @@ void SensorFusion::HandleSensorData() {
         fusionData.data.StereoCamera = *cameraData;
         fusionData.data.SectorLidar = lidarData->data;
         fusionData.timestamp = cameraData->timestamp;
+        fusionData.vehiclemode = cameraData -> vehiclemode;
 
         m_PPortSensorFusion->WriteDataSFEvent(fusionData);
         m_PPortSensorFusion->SendEventSFEventTriggered();
         m_logger.LogInfo() << "HandleSensorData: Sensor fusion data sent.";
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
 

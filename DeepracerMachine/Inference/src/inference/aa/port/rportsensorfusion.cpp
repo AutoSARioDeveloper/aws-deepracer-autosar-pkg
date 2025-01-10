@@ -216,18 +216,24 @@ void RPortSensorFusion::ReceiveEventSFEventCyclic()
                 }
             }
         }
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
  
 void RPortSensorFusion::ReadDataSFEvent(ara::com::SamplePtr<deepracer::service::sensorfusion::proxy::events::SFEvent::SampleType const> samplePtr)
 {
+    if (!samplePtr || !samplePtr.Get())
+    {
+        m_logger.LogError() << "Received null sample pointer.";
+        return;
+    }
     auto data = *samplePtr.Get();
     if (m_receiveEventSFEventHandler != nullptr)
     {
         m_receiveEventSFEventHandler(data);
     }
 }
+
 
 void RPortSensorFusion::SetReceiveEventSFEventHandler(
     std::function<void(const deepracer::service::sensorfusion::proxy::events::SFEvent::SampleType&)> handler)

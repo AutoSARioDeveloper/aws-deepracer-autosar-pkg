@@ -25,6 +25,7 @@
 #include <ara/core/structure.h>
 #include "deepracer/image/impl_type_image.h"
 #include "deepracer/timestamp/impl_type_timestamp.h"
+#include "deepracer/vehiclemode/impl_type_vehiclemode.h"
 /// @uptrace{SWS_CM_10375}
 namespace deepracer
 {
@@ -35,7 +36,8 @@ struct StereoCamera
     deepracer::image::Image left;
     deepracer::image::Image right;
     deepracer::timestamp::Timestamp timestamp;
-    PARA_STRUCTURE(StereoCamera, left, right, timestamp);
+    deepracer::vehiclemode::VehicleMode vehiclemode;
+    PARA_STRUCTURE(StereoCamera, left, right, timestamp, vehiclemode);
 };
 } /// namespace serviceinterfacecam
 } /// namespace deepracer

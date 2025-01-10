@@ -15,7 +15,7 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "camera/aa/camera.h"
- 
+
 using namespace cv;
 
 namespace camera
@@ -27,6 +27,7 @@ Camera::Camera()
     : m_logger(ara::log::CreateLogger("CAM", "SWC", ara::log::LogLevel::kVerbose))
     , m_workers(1)
     , m_running(false)
+    , m_vehicleMode(VehicleMode::isDeepRacer)
 {
 }
  
@@ -37,18 +38,19 @@ Camera::~Camera()
 bool Camera::Initialize()
 {
     m_logger.LogVerbose() << "Camera::Initialize";
-    
-    bool init{true};
-    
+
     m_PPortCamera = std::make_shared<camera::aa::port::PPortCamera>();
-    
-    return init;
+
+    return true;
 }
+
  
-void Camera::Start()
+void Camera::Start(VehicleMode mode)
 {
     m_logger.LogVerbose() << "Camera::Start";
     
+    m_vehicleMode = mode;
+
     m_PPortCamera->Start();
     
     // run software component
@@ -70,12 +72,95 @@ void Camera::Run()
     
     m_running = true;
 
-    m_workers.Async([this] { HandleCameraData(); });
+    m_workers.Async([this] { HandleCamera(); });
     
     m_workers.Wait();
 }
 
-bool Camera::HandleCameraData()
+bool Camera::HandleCamera()
+{
+    if (m_vehicleMode == VehicleMode::isSimulation) {
+        return HandleSimulationData();
+    } else if (m_vehicleMode == VehicleMode::isDeepRacer) {
+        return HandleDeepracerData();
+    } else {
+        m_logger.LogWarn() << "Invalid mode";
+        return false;
+    }
+}
+
+bool Camera::HandleSimulationData()
+{
+    const std::uint16_t FIXED_WIDTH = 160;
+    const std::uint16_t FIXED_HEIGHT = 120;
+
+    camera_sub_l = nh.subscribe<sensor_msgs::Image>(
+    "/camera/zed/rgb/image_rect_color", 10,
+    [this](const sensor_msgs::Image::ConstPtr& msg) {
+        this->cameraCallback(msg, true);
+    });
+
+    camera_sub_r = nh.subscribe<sensor_msgs::Image>(
+    "/camera/zed_right/rgb/image_rect_color_right", 10,
+    [this](const sensor_msgs::Image::ConstPtr& msg) {
+        this->cameraCallback(msg, false);
+    });
+
+    ROS_INFO("Sensor Data Sender initialized.");
+
+    while (m_running) {
+        ros::spinOnce();
+        
+        cv::Mat left_frame, right_frame;
+        cv::Mat left_gray, right_gray;
+
+        if (left_image_buffer && right_image_buffer) {
+            left_frame = left_image_buffer->image;
+            right_frame = right_image_buffer->image;
+
+            cv::resize(left_frame, left_frame, cv::Size(FIXED_WIDTH, FIXED_HEIGHT));
+            cv::resize(right_frame, right_frame, cv::Size(FIXED_WIDTH, FIXED_HEIGHT));
+
+            cv::cvtColor(left_frame, left_gray, cv::COLOR_BGR2GRAY);
+            cv::cvtColor(right_frame, right_gray, cv::COLOR_BGR2GRAY);
+
+            deepracer::image::Image LeftCameraData = {FIXED_WIDTH, FIXED_HEIGHT, {}};
+            deepracer::image::Image RightCameraData = {FIXED_WIDTH, FIXED_HEIGHT, {}};
+
+            LeftCameraData.data.resize(FIXED_WIDTH * FIXED_HEIGHT);
+            RightCameraData.data.resize(FIXED_WIDTH * FIXED_HEIGHT);
+
+            std::memcpy(LeftCameraData.data.data(), left_gray.data, left_gray.total());
+            std::memcpy(RightCameraData.data.data(), right_gray.data, right_gray.total());
+  
+            deepracer::serviceinterfacecam::StereoCamera data;
+            data.left = LeftCameraData;
+            data.right = RightCameraData;
+            data.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                 std::chrono::system_clock::now().time_since_epoch())
+                                 .count();
+            data.vehiclemode = toUint16(m_vehicleMode);
+
+            m_PPortCamera->WriteDataCamEvent(data);
+
+            size_t leftDataSize = data.left.data.size();
+            size_t rightDataSize = data.right.data.size();
+            size_t totalSize = leftDataSize + rightDataSize;
+
+            m_logger.LogInfo() << "Camera::Call Camera->WriteDataREvent : "
+                               << "Left Data Size: " << leftDataSize << " bytes, "
+                               << "Right Data Size: " << rightDataSize << " bytes, "
+                               << "Total Data Size: " << totalSize << " bytes";
+
+            m_PPortCamera->SendEventCamEventTriggered();
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    return true;
+}
+
+bool Camera::HandleDeepracerData()
 {
     const std::uint16_t FIXED_WIDTH = 160;
     const std::uint16_t FIXED_HEIGHT = 120;
@@ -137,6 +222,7 @@ bool Camera::HandleCameraData()
         data.left = LeftCameraData;
         data.right = RightCameraData;
         data.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        data.vehiclemode = toUint16(m_vehicleMode);
 
         m_PPortCamera->WriteDataCamEvent(data);
         size_t leftDataSize = data.left.data.size();
@@ -153,5 +239,22 @@ bool Camera::HandleCameraData()
     }
     return true;
 } 
+
+void Camera::cameraCallback(const sensor_msgs::Image::ConstPtr& msg, bool is_left) {
+    cv_bridge::CvImagePtr cv_ptr;
+
+    cv_ptr = cv_bridge::toCvCopy(msg, "bgr8");
+    if (cv_ptr) {
+        if (is_left) {
+            left_image_buffer = cv_ptr;
+        } else {
+            right_image_buffer = cv_ptr;
+        }
+    } else {
+        ROS_ERROR("Failed to convert ROS Image to OpenCV image");
+    }
+}
+
+
 } /// namespace aa
 } /// namespace camera

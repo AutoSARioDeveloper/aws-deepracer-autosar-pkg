@@ -24,16 +24,17 @@ namespace aa
 {
  
 Lidar::Lidar()
-    : m_logger(ara::log::CreateLogger("LID", "SWC", ara::log::LogLevel::kVerbose)),
-      scanIncrementDegree_(0.69),
-      minDegree_(-179),
-      maxDegree_(171),
-      minRange_(150),
-      maxRange_(1200),
-      sampleNum_(64),
-      sectorNum_(8),
-      m_workers(1),
-      m_running(false)
+    : m_logger(ara::log::CreateLogger("LID", "SWC", ara::log::LogLevel::kVerbose))
+    , scanIncrementDegree_(0.69)
+    , minDegree_(-179)
+    , maxDegree_(171)
+    , minRange_(150)
+    , maxRange_(1200)
+    , sampleNum_(64)
+    , sectorNum_(8)
+    , m_workers(1)
+    , m_running(false)
+    , m_vehicleMode(VehicleMode::isDeepRacer)
 {
 }
 
@@ -53,9 +54,11 @@ bool Lidar::Initialize()
     return init;
 }
  
-void Lidar::Start()
+void Lidar::Start(VehicleMode mode)
 {
     m_logger.LogVerbose() << "Lidar::Start";
+
+    m_vehicleMode = mode;
     
     m_PPortLidar->Start();
     
@@ -78,11 +81,22 @@ void Lidar::Run()
 
     m_running = true;
 
-    m_workers.Async([this] { HandleSectorLidarData(); });
+    m_workers.Async([this] { HandleLidar(); });
 
     m_workers.Wait();
 }
 
+bool Lidar::HandleLidar()
+{
+    if (m_vehicleMode == VehicleMode::isSimulation) {
+        return HandleSimulationData();
+    } else if (m_vehicleMode == VehicleMode::isDeepRacer) {
+        return HandleDeepracerData();
+    } else {
+        m_logger.LogWarn() << "Invalid mode";
+        return false;
+    }
+}
 
 void Lidar::saveLidarData(std::vector<LidarStruct> &data, sl_lidar_response_measurement_node_hq_t *nodes, size_t count) {
     data.clear();
@@ -92,10 +106,6 @@ void Lidar::saveLidarData(std::vector<LidarStruct> &data, sl_lidar_response_meas
         Lstruct.distance = nodes[i].dist_mm_q2 / 4.0f;
         Lstruct.quality = nodes[i].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT;
         data.push_back(Lstruct);
-
-        // printf("Raw Angle: %.2f, Distance: %.2f, Quality: %d",
-        //        Lstruct.angle, Lstruct.distance, Lstruct.quality);
-        // printf("\n");
     }
 }
 
@@ -133,20 +143,21 @@ std::vector<float> Lidar::generateLidarData(const std::vector<float>& distanceLi
     std::vector<float> lidarRanges, lidarDegrees;
     for (size_t i = 0; i < distanceList.size(); ++i) {
         float degree = minDegree_ + scanIncrementDegree_ * i;
-        if (degree >= minDegree_ && degree <= maxDegree_) {
-            float range = std::isinf(distanceList[i]) ? maxRange_ : (distanceList[i] < minRange_ ? minRange_ : (distanceList[i] > maxRange_ ? maxRange_ : distanceList[i]));
-            lidarRanges.push_back(range);
-            lidarDegrees.push_back(degree);
+        float range = std::isinf(distanceList[i]) ? maxRange_ : 
+                      (distanceList[i] < minRange_ ? minRange_ : 
+                      (distanceList[i] > maxRange_ ? maxRange_ : distanceList[i]));
+        
+        lidarRanges.push_back(range);
+        lidarDegrees.push_back(degree);
+
+        if (m_vehicleMode == VehicleMode::isDeepRacer && 
+            (degree < minDegree_ || degree > maxDegree_)) {
+            lidarRanges.pop_back();
+            lidarDegrees.pop_back();
         }
     }
 
-    // printf("Processed Data:\n");
-    // for (size_t i = 0; i < lidarRanges.size(); ++i) {
-    //     printf("Degree: %.0f, Range: %.2f\n", lidarDegrees[i], lidarRanges[i]);
-    // }
-
     auto desiredLidarDegrees = linspace(minDegree_, maxDegree_, sampleNum_);
-
     if (std::find(lidarDegrees.begin(), lidarDegrees.end(), minDegree_) == lidarDegrees.end()) {
         lidarDegrees.insert(lidarDegrees.begin(), minDegree_);
         lidarDegrees.push_back(maxDegree_);
@@ -159,14 +170,18 @@ std::vector<float> Lidar::generateLidarData(const std::vector<float>& distanceLi
 }
 
 std::vector<float> Lidar::generateSectorLidarData(const std::vector<float>& lidarInput, int sectorNum) {
-    size_t blockSize = lidarInput.size() / sectorNum;
+    size_t blockSize;
+    
+    if (m_vehicleMode == VehicleMode::isDeepRacer) {
+        blockSize = lidarInput.size() / sectorNum;
+    } else if (m_vehicleMode == VehicleMode::isSimulation) {
+        blockSize = (lidarInput.size() + sectorNum - 1) / sectorNum;
+    } else {
+        m_logger.LogWarn() << "Invalid mode";
+        return {};
+    }
+    
     std::vector<float> sectorLidarData = binarySectorizeLidarData(lidarInput, blockSize);
-
-    // printf("Sector Data: ");
-    // for (size_t i = 0; i < sectorLidarData.size(); ++i) {
-    //     printf("Sector %zu: %.2f; ", i, sectorLidarData[i]);
-    // }
-    // printf("\n");
 
     return sectorLidarData;
 }
@@ -177,15 +192,96 @@ std::vector<float> Lidar::binarySectorizeLidarData(const std::vector<float>& lid
     sectorLidarData.reserve((lidarData.size() + blockSize - 1) / blockSize);
 
     for (size_t i = 0; i < lidarData.size(); i += blockSize) {
-        bool setBit = std::any_of(lidarData.begin() + i, lidarData.begin() + std::min(i + blockSize, lidarData.size()),
+        size_t endIdx = std::min(i + blockSize, lidarData.size());
+        bool setBit = std::any_of(lidarData.begin() + i, lidarData.begin() + endIdx,
                                   [this](float value) { return value > minRange_; });
         sectorLidarData.push_back(setBit ? 1.0f : 0.0f);
+    }
+
+    if (m_vehicleMode == VehicleMode::isSimulation) {
+        while (sectorLidarData.size() < sectorNum_) {
+            sectorLidarData.push_back(0.0f);
+        }
     }
 
     return sectorLidarData;
 }
 
-bool Lidar::HandleSectorLidarData()
+
+bool Lidar::HandleSimulationData()
+{
+    // ROS 토픽 구독 설정
+    lidar_sub = nh.subscribe("/scan", 10, &Lidar::lidarCallback, this);
+
+    m_logger.LogInfo() << "Lidar::HandleSimulationData - Start LiDAR Data Handling";
+
+    // ROS 콜백 루프 실행
+    while (m_running) {
+        ros::spinOnce();  // ROS 콜백 함수 실행
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+
+    m_logger.LogInfo() << "Lidar::HandleSimulationData - Stopping LiDAR Data Handling";
+    return true;
+}
+
+void Lidar::lidarCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
+{
+    m_logger.LogInfo() << "LiDAR Callback - Received Data Count: " << msg->ranges.size();
+
+    std::vector<LidarStruct> scanData;
+
+    for (size_t i = 0; i < msg->ranges.size(); ++i) {
+        float angle = msg->angle_min + i * msg->angle_increment;
+        float distance = std::isinf(msg->ranges[i]) ? 0 : msg->ranges[i] * 1000; // m → mm
+
+        // m_logger.LogInfo() << "Range[" << i << "]: " << msg->ranges[i] << ", Converted Distance: " << distance;
+
+        LidarStruct Lstruct;
+        Lstruct.angle = angle * 180 / M_PI; // 라디안 → 도(degree)
+        Lstruct.distance = distance;
+        Lstruct.quality = 47; // Q 값 고정
+        scanData.push_back(Lstruct);
+    }
+
+    std::vector<float> distances;
+    for (const auto& Lstruct : scanData) {
+        distances.push_back(Lstruct.distance);
+    }
+
+    auto lidarData = generateLidarData(distances);
+    auto sectorLidarData = generateSectorLidarData(lidarData, sectorNum_);
+
+    // m_logger.LogInfo() << "Processed Sector Data:";
+    // for (size_t i = 0; i < sectorLidarData.size(); ++i) {
+    //     m_logger.LogInfo() << "Sector[" << i << "]: " << sectorLidarData[i];
+    // }
+
+    // 데이터 전송
+    deepracer::lidardatalist::SectorLidarData convertedSectorData;
+    for (const auto& value : sectorLidarData) {
+        convertedSectorData.push_back(value);
+    }
+
+    deepracer::serviceinterfacelidar::SectorLidar data;
+    data.data = convertedSectorData;
+    data.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::system_clock::now().time_since_epoch())
+                         .count();
+    data.vehiclemode = toUint16(m_vehicleMode);
+
+    size_t activeSectors = std::count_if(data.data.begin(), data.data.end(), [](float val) { return val > 0; });
+
+    // m_logger.LogInfo() << "Lidar::WriteDataLidEvent - Active Sectors: " << activeSectors;
+    m_PPortLidar->WriteDataLidEvent(data);
+    // for (size_t i = 0; i < data.data.size(); ++i) {
+    //     m_logger.LogInfo() << "Sector[" << i << "]: " << (data.data[i] ? "true" : "false");
+    // }
+    m_PPortLidar->SendEventLidEventTriggered();
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+}
+
+bool Lidar::HandleDeepracerData()
 {
     const char* dev = "/dev/ttyUSB0";
     std::uint32_t baudrate = 115200;
@@ -231,6 +327,7 @@ bool Lidar::HandleSectorLidarData()
                 data.timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
                                      std::chrono::system_clock::now().time_since_epoch())
                                      .count();
+                data.vehiclemode = toUint16(m_vehicleMode);
 
                 size_t activeSectors = std::count_if(data.data.begin(), data.data.end(), [](bool val) { return val; });
                 size_t totalSectors = data.data.size();

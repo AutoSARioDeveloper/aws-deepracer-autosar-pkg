@@ -37,16 +37,30 @@
 #include <iomanip>
 #include "sl_lidar.h" 
 #include "sl_lidar_driver.h"
+#include <sensor_msgs/LaserScan.h>
+#include <ros/ros.h>
 
 namespace lidar
 {
 namespace aa
 {
+
 struct LidarStruct {
-    float angle;   // degrees
-    float distance; // mm
+    float angle;
+    float distance;
     uint8_t quality;
 };
+
+enum class VehicleMode : uint16_t {
+    isDeepRacer = 0,
+    isSimulation = 1,
+    isInvalid = 2
+};
+
+inline uint16_t toUint16(VehicleMode mode) {
+    return static_cast<uint16_t>(mode);
+}
+
 class Lidar
 {
 public:
@@ -60,12 +74,18 @@ public:
     bool Initialize();
     
     /// @brief Start software component
-    void Start();
+    void Start(VehicleMode mode);
     
     /// @brief Terminate software component
     void Terminate();
 
-    bool HandleSectorLidarData();
+    bool HandleLidar();
+
+    bool HandleSimulationData();
+
+    bool HandleDeepracerData();
+
+    void lidarCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
 
     void saveLidarData(std::vector<LidarStruct>& data, sl_lidar_response_measurement_node_hq_t* nodes, size_t count);
 
@@ -92,6 +112,8 @@ private:
     /// @brief Instance of Port {Lidar.PPortLidar}
     std::shared_ptr<lidar::aa::port::PPortLidar> m_PPortLidar;
 
+    ros::NodeHandle nh;
+    ros::Subscriber lidar_sub;
     float scanIncrementDegree_;
     float minDegree_;
     float maxDegree_;
@@ -100,6 +122,7 @@ private:
     float sampleNum_;
     int sectorNum_;
     std::mutex lidarMutex_;
+    VehicleMode m_vehicleMode;
 };
  
 } /// namespace aa

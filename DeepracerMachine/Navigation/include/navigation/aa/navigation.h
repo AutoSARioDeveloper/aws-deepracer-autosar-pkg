@@ -21,7 +21,8 @@
 #include "navigation/aa/port/rportinference.h"
  
 #include "para/swc/port_pool.h"
- 
+#include <mutex>
+
 namespace navigation
 {
 namespace aa
@@ -66,6 +67,8 @@ private:
     
     /// @brief Logger for software component
     ara::log::Logger& m_logger;
+    
+    std::mutex m_mutex;
     
     /// @brief Instance of Port {Navigation.PPortNavigation}
     std::shared_ptr<navigation::aa::port::PPortNavigation> m_PPortNavigation;

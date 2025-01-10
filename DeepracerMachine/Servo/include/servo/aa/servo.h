@@ -19,6 +19,26 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "servo/aa/port/rportnavigation.h"
 #include "para/swc/port_pool.h"
+#include <ros/ros.h>
+#include <ackermann_msgs/AckermannDriveStamped.h>
+#include <std_msgs/Float64.h>
+#include <cmath>
+#include <unordered_map>
+#include <mutex>
+#include <thread>
+#include <iostream>
+#include <cstring>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <chrono>
+
+#define UDP_PORT 65534
+#define BUFFER_SIZE 1024
+
+template <typename T>
+constexpr const T& clamp(const T& value, const T& low, const T& high) {
+    return (value < low) ? low : (value > high) ? high : value;
+}
 
 namespace servo
 {
@@ -46,8 +66,18 @@ public:
 private:
     /// @brief Run software component
     void Run();
- 
+
+    void TaskReceiveNavEventCyclic();
+
+    void OnReceiveNavEvent(const deepracer::service::navigation::proxy::events::NavEvent::SampleType& sample);
+
+    void publishCommand(double target_speed, double target_steer_angle);
+
+    bool bindUdpSocket();
+    
 private:
+    bool m_running;
+
     /// @brief Pool of port
     para::swc::PortPool m_workers;
     
@@ -56,6 +86,38 @@ private:
     
     /// @brief Instance of Port {Servo.RPortNavigation}
     std::shared_ptr<servo::aa::port::RPortNavigation> m_RPortNavigation;
+
+    std::shared_ptr<deepracer::serviceinterfacecontrol::Control> m_latestNavData;
+
+    ros::NodeHandle private_nh_;
+    ros::NodeHandle nh_;
+    std::unordered_map<std::string, ros::Publisher> velocity_pub_;
+    std::unordered_map<std::string, ros::Publisher> steering_pub_;
+    std::mutex lock_;
+    std::mutex udpMutex_;
+    std::thread controlThread_;
+    socklen_t clientAddrLen = 0; 
+
+    struct sockaddr_in serverAddr, clientAddr;
+    char buffer[BUFFER_SIZE];
+
+    int sockfd;
+    double max_speed_;
+    double max_steering_angle_;
+
+    double speed_;
+    double steering_angle_;
+
+    std::thread udpThread_;
+    bool init_success_;     
+
+    struct ControlCommand {
+        double speed;
+        double steer_angle;
+    };
+
+    std::shared_ptr<PWM::ServoMgr> m_servoMgr;
+    std::shared_ptr<PWM::LedMgr> m_ledMgr;
 };
  
 } /// namespace aa

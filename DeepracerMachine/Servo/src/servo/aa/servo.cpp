@@ -21,12 +21,31 @@ namespace servo
 namespace aa
 {
  
+// servo.cpp
 Servo::Servo()
-    : m_logger(ara::log::CreateLogger("SERV", "SWC", ara::log::LogLevel::kVerbose))
+    : nh_() 
+    , private_nh_("~")
+    , m_logger(ara::log::CreateLogger("SERV", "SWC", ara::log::LogLevel::kVerbose))
     , m_workers(1)
+    , m_running(false)
 {
-    
+    private_nh_.param("max_speed", max_speed_, 22.0);
+    private_nh_.param("max_steering_angle", max_steering_angle_, 0.54);
+
+    speed_ = 0.0;
+    steering_angle_ = 0.0;
+
+    velocity_pub_["l_rear_wheel"] = nh_.advertise<std_msgs::Float64>("/left_rear_wheel_velocity_controller/command", 1);
+    velocity_pub_["r_rear_wheel"] = nh_.advertise<std_msgs::Float64>("/right_rear_wheel_velocity_controller/command", 1);
+    velocity_pub_["l_front_wheel"] = nh_.advertise<std_msgs::Float64>("/left_front_wheel_velocity_controller/command", 1);
+    velocity_pub_["r_front_wheel"] = nh_.advertise<std_msgs::Float64>("/right_front_wheel_velocity_controller/command", 1);
+
+    steering_pub_["left"] = nh_.advertise<std_msgs::Float64>("/left_steering_hinge_position_controller/command", 1);
+    steering_pub_["right"] = nh_.advertise<std_msgs::Float64>("/right_steering_hinge_position_controller/command", 1);
+
+    m_logger.LogInfo() << "Servo initialized.";
 }
+
  
 Servo::~Servo()
 {
@@ -49,24 +68,180 @@ void Servo::Start()
     
     m_RPortNavigation->Start();
 
-    // run software component
+    if (!bindUdpSocket()) {
+        m_logger.LogError() << "UDP socket binding failed in Start().";
+        return;
+    }
+
+    udpThread_ = std::thread([this]() {
+        struct sockaddr_in tempClientAddr;
+        socklen_t tempClientAddrLen = sizeof(tempClientAddr);
+        
+        while (ros::ok() && m_running) {
+            int len = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, 
+                            (struct sockaddr *)&tempClientAddr, &tempClientAddrLen);
+            if (len > 0) {
+                buffer[len] = '\0';
+
+                {
+                    std::lock_guard<std::mutex> lock(udpMutex_);
+                    clientAddr = tempClientAddr;
+                    clientAddrLen = tempClientAddrLen;
+                }
+
+                m_logger.LogInfo() << "Received new client request from: " 
+                                << inet_ntoa(clientAddr.sin_addr)
+                                << ":" << ntohs(clientAddr.sin_port);
+            }
+        }
+    });
+
     Run();
 }
  
 void Servo::Terminate()
 {
     m_logger.LogVerbose() << "Servo::Terminate";
-    
+
+    m_running = false;
+
+    if (udpThread_.joinable()) {
+        udpThread_.join();
+    }
+
+    close(sockfd);
+
     m_RPortNavigation->Terminate();
 }
- 
+
 void Servo::Run()
 {
     m_logger.LogVerbose() << "Servo::Run";
+    m_running = true;
 
-    m_workers.Async([this] { m_RPortNavigation->ReceiveEventNavEventCyclic(); });
-    
+    m_workers.Async([this] { TaskReceiveNavEventCyclic(); });
     m_workers.Wait();
+}
+
+void Servo::TaskReceiveNavEventCyclic()
+{
+    m_logger.LogInfo() << "TaskReceiveNavEventCyclic: Setting ReceiveEventNavEventHandler";
+    m_RPortNavigation->SetReceiveEventNavEventHandler([this](const auto& sample)
+    {
+        OnReceiveNavEvent(sample);
+    });
+    m_RPortNavigation->ReceiveEventNavEventCyclic();
+}
+
+void Servo::OnReceiveNavEvent(const deepracer::service::navigation::proxy::events::NavEvent::SampleType& sample)
+{
+    static std::chrono::steady_clock::time_point last_log_time = std::chrono::steady_clock::now();
+    {
+        std::lock_guard<std::mutex> lock(lock_);
+        m_latestNavData = std::make_shared<deepracer::serviceinterfacecontrol::Control>(sample);
+    }
+
+    auto naviData = m_latestNavData->data;
+    auto vehiclemode = m_latestNavData->vehiclemode;
+
+    if (static_cast<uint16_t>(vehiclemode) == static_cast<uint16_t>(servo::aa::port::VehicleMode::isDeepRacer))
+    {
+        m_servoMgr->servoSubscriber(naviData.throttle * 0.3, naviData.angle / 30.0f);
+        auto now = std::chrono::steady_clock::now();
+        if (std::chrono::duration_cast<std::chrono::seconds>(now - last_log_time).count() >= 1)
+        {
+            m_logger.LogInfo() << "DeepRacer Mode: Throttle=" << naviData.throttle * 0.3
+                               << ", Angle=" << naviData.angle / 30.0f;
+            last_log_time = now;
+        }
+    }
+    else if (static_cast<uint16_t>(vehiclemode) == static_cast<uint16_t>(servo::aa::port::VehicleMode::isSimulation))
+    {
+        double target_speed = clamp(static_cast<float>(naviData.throttle * 8.0), 0.0f, static_cast<float>(max_speed_));
+        double target_steer_angle = clamp(static_cast<float>(naviData.angle), -static_cast<float>(max_steering_angle_), static_cast<float>(max_steering_angle_));
+        publishCommand(target_speed, target_steer_angle);
+
+        if (!controlThread_.joinable()) {
+            controlThread_ = std::thread([this]() {
+                ros::Rate rate(100);
+                while (ros::ok() && m_running) {
+                    {
+                        std::lock_guard<std::mutex> lock(lock_);
+                        if (m_latestNavData) {
+                            auto naviData = m_latestNavData->data;
+                            double target_speed = clamp(static_cast<float>(naviData.throttle * 8.0), 0.0f, static_cast<float>(max_speed_));
+                            double target_steer_angle = clamp(static_cast<float>(naviData.angle), -static_cast<float>(max_steering_angle_), static_cast<float>(max_steering_angle_));
+                            publishCommand(target_speed, target_steer_angle);
+                        }
+                    }
+                    rate.sleep();
+                }
+            });
+        }
+    }
+}
+
+
+void Servo::publishCommand(double target_speed, double target_steer_angle)
+{
+    std_msgs::Float64 speed_msg;
+    speed_msg.data = target_speed;
+
+    velocity_pub_["l_rear_wheel"].publish(speed_msg);
+    velocity_pub_["r_rear_wheel"].publish(speed_msg);
+    velocity_pub_["l_front_wheel"].publish(speed_msg);
+    velocity_pub_["r_front_wheel"].publish(speed_msg);
+
+    std_msgs::Float64 steering_msg;
+    steering_msg.data = target_steer_angle;
+
+    steering_pub_["left"].publish(steering_msg);
+    steering_pub_["right"].publish(steering_msg);
+
+    speed_ = target_speed;
+    steering_angle_ = target_steer_angle;
+
+    static std::chrono::steady_clock::time_point last_log_time = std::chrono::steady_clock::now();
+    auto now = std::chrono::steady_clock::now();
+    if (std::chrono::duration_cast<std::chrono::seconds>(now - last_log_time).count() >= 1)
+    {
+        m_logger.LogInfo() << "Published to Wheels - Speed: " << speed_
+                           << ", Steering Angle: " << steering_angle_;
+        last_log_time = now;
+    }
+
+    std::lock_guard<std::mutex> lock(udpMutex_);
+    if (clientAddr.sin_port != 0) {
+        ControlCommand cmd = {speed_, steering_angle_};
+        sendto(sockfd, &cmd, sizeof(cmd), 0, (struct sockaddr *)&clientAddr, clientAddrLen);
+    }
+}
+
+
+bool Servo::bindUdpSocket()
+{
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        m_logger.LogError() << "Socket creation failed: " << strerror(errno);
+        return false;
+    } else {
+        m_logger.LogInfo() << "Socket created successfully. fd: " << sockfd;
+    }
+
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(UDP_PORT);
+
+    if (bind(sockfd, (const struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
+        m_logger.LogError() << "Bind failed on port " << UDP_PORT << ": " << strerror(errno);
+        close(sockfd);
+        return false;
+    } else {
+        m_logger.LogInfo() << "Bind successful. Listening on UDP 0.0.0.0:" << UDP_PORT;
+    }
+
+    return true;
 }
 
 } /// namespace aa

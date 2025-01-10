@@ -89,20 +89,48 @@ void Inference::TaskReceiveSFEventCyclic()
     m_RPortSensorFusion->ReceiveEventSFEventCyclic();
 }
 
+bool Inference::IsValidSensorFusion(const std::shared_ptr<deepracer::serviceinterfacefusion::SensorFusion>& data)
+{
+    if (!data) {
+        m_logger.LogError() << "SensorFusion data is null.";
+        return false;
+    }
+
+    if (data->data.StereoCamera.left.height != 120) {
+        m_logger.LogWarn() << "Invalid height: " << data->data.StereoCamera.left.height;
+        return false;
+    }
+
+    if (data->data.SectorLidar.empty()) {
+        m_logger.LogWarn() << "SectorLidar points are empty.";
+        return false;
+    }
+
+    return true;
+}
+
 void Inference::OnReceiveSFEvent(const deepracer::service::sensorfusion::proxy::events::SFEvent::SampleType& sample)
 {
-    m_latestSFData = std::make_shared<deepracer::serviceinterfacefusion::SensorFusion>(sample);
-    m_logger.LogInfo() << "Inference::OnReceiveSFEvent: Fusion data updated.";
-    if (m_latestSFData) {
-    auto timestamp = m_latestSFData->timestamp;
-    auto stereoCameraData = m_latestSFData->data.StereoCamera;
-    auto sectorLidarData = m_latestSFData->data.SectorLidar;
+    std::shared_ptr<deepracer::serviceinterfacefusion::SensorFusion> sfDataCopy;
 
-    m_logger.LogInfo() << "Timestamp: " << timestamp;
-    m_logger.LogInfo() << "Stereo Camera Height: " << stereoCameraData.left.height;
-    m_logger.LogInfo() << "Lidar Data Size: " << sectorLidarData.size();
-    } else {
-        m_logger.LogWarn() << "No latest fusion data available.";
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_latestSFData = std::make_shared<deepracer::serviceinterfacefusion::SensorFusion>(sample);
+        sfDataCopy = m_latestSFData;
+    }
+
+    m_logger.LogInfo() << "Inference::OnReceiveSFEvent: Fusion data updated.";
+
+    if (!sfDataCopy) {
+        m_logger.LogError() << "m_latestSFData is null after copying.";
+        return;
+    }
+
+    auto& sectorLidarData = sfDataCopy->data.SectorLidar;
+
+    if (sectorLidarData.empty()) {
+        m_logger.LogWarn() << "Sector Lidar data is empty.";
+        return;
     }
 }
 
@@ -151,8 +179,19 @@ void Inference::HandleInferData()
             continue;
         }
 
-        auto fusionData = m_latestSFData;
-        m_latestSFData.reset();
+        std::shared_ptr<deepracer::serviceinterfacefusion::SensorFusion> fusionData;
+
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            fusionData = m_latestSFData;
+            m_latestSFData.reset();
+        }
+
+        if (!fusionData) {
+            m_logger.LogWarn() << "No fusion data available.";
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            continue;
+        }
 
         Blob::Ptr cameraBlob = inferRequest.GetBlob(cameraInputName);
         auto cameraBlobData = cameraBlob ? cameraBlob->buffer().as<uint8_t*>() : nullptr;
@@ -182,6 +221,8 @@ void Inference::HandleInferData()
 
         deepracer::serviceinterfaceinfer::Inference inferData;
         inferData.timestamp = fusionData->timestamp;
+        inferData.vehiclemode = fusionData->vehiclemode;
+
         for (size_t i = 0; i < outputResults.size(); ++i) {
             deepracer::inferenceitem::InferenceItem item;
             item.class_label = static_cast<int32_t>(i);
@@ -198,7 +239,7 @@ void Inference::HandleInferData()
                                << ", Prob : " << item.class_prob;
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
 

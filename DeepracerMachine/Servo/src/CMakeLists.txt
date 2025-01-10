@@ -15,12 +15,28 @@ Para_Target(${PARA_APP_NAME}
             OUTPUT_NAME ${PARA_APP_NAME}
 )
 # ============================================================================
-target_include_directories(${PARA_APP_NAME}
-                           PRIVATE
-                           ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# OpenCV Configuration
 # ============================================================================
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+# ROS 라이브러리 설정
+find_package(roscpp REQUIRED)
+find_package(ackermann_msgs REQUIRED)
+
+# ROS 헤더 포함 경로
+include_directories(
+    ${OpenCV_INCLUDE_DIRS}
+    ${roscpp_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+# OpenCV 및 ROS 라이브러리 연결
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
+                      ${OpenCV_LIBS}
+                      ${roscpp_LIBRARIES}
+                      ${ackermann_msgs_LIBRARIES}
                       pthread)
 # ============================================================================
 target_sources(${PARA_APP_NAME}

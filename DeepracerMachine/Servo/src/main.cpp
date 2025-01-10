@@ -37,6 +37,9 @@ int main(int argc, char *argv[], char* envp[])
     bool proceed{true};
     bool araInitialized{true};
     
+    // Initialize ROS before AUTOSAR components
+    ros::init(argc, argv, "servo_init");
+    
     // initialize AUTOSAR adaptive application
     auto appInit = ara::core::Initialize();
     if (!appInit.HasValue())

@@ -23,7 +23,7 @@
 
 #include "servo/aa/servo_mgr.hpp"
 #include "servo/aa/led_mgr.hpp" 
- 
+
 #include <mutex>
 #include <thread>
  
@@ -33,7 +33,13 @@ namespace aa
 {
 namespace port
 {
- 
+
+enum class VehicleMode : uint16_t {
+    isDeepRacer = 0,
+    isSimulation = 1,
+    isInvalid = 2
+};
+
 class RPortNavigation
 {
 public:
@@ -64,7 +70,7 @@ public:
     /// @brief Read event data, NavEvent
     void ReadDataNavEvent(ara::com::SamplePtr<deepracer::service::navigation::proxy::events::NavEvent::SampleType const> samplePtr);
     
-    
+    void SetReceiveEventNavEventHandler(std::function<void(const deepracer::service::navigation::proxy::events::NavEvent::SampleType&)> handler);
     
 private:
     /// @brief Callback for find service
@@ -94,8 +100,8 @@ private:
     /// @brief Find service handle
     std::shared_ptr<ara::com::FindServiceHandle> m_findHandle;
 
-    std::shared_ptr<PWM::ServoMgr> m_servoMgr;
-    std::shared_ptr<PWM::LedMgr> m_ledMgr;
+    /// @brief Receive event handler
+    std::function<void(const deepracer::service::navigation::proxy::events::NavEvent::SampleType&)> m_receiveEventNavEventHandler;
 };
  
 } /// namespace port

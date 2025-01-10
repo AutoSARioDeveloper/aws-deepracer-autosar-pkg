@@ -35,7 +35,7 @@
         }
     ],
     "log-trace-configuration" : {
-    	"default-log-level" : "verbose",
+    	"default-log-level" : "info",
     	"log-modes" : [
     	    "console"
     	],

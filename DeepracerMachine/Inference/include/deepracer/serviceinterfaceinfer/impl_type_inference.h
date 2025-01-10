@@ -25,6 +25,7 @@
 #include <ara/core/structure.h>
 #include "deepracer/inferdatalist/impl_type_inferencedata.h"
 #include "deepracer/timestamp/impl_type_timestamp.h"
+#include "deepracer/vehiclemode/impl_type_vehiclemode.h"
 /// @uptrace{SWS_CM_10375}
 namespace deepracer
 {
@@ -34,7 +35,8 @@ struct Inference
 {
     deepracer::inferdatalist::InferenceData data;
     deepracer::timestamp::Timestamp timestamp;
-    PARA_STRUCTURE(Inference, data, timestamp);
+    deepracer::vehiclemode::VehicleMode vehiclemode;
+    PARA_STRUCTURE(Inference, data, timestamp, vehiclemode);
 };
 } /// namespace serviceinterfaceinfer
 } /// namespace deepracer

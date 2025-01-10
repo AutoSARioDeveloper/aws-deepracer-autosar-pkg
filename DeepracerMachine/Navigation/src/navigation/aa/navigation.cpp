@@ -89,21 +89,28 @@ void Navigation::TaskReceiveInfEventCyclic()
 
 void Navigation::OnReceiveInfEvent(const deepracer::service::inference::proxy::events::InfEvent::SampleType& sample)
 {
-    m_latestInfData = std::make_shared<deepracer::serviceinterfaceinfer::Inference>(sample);
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_latestInfData = std::make_shared<deepracer::serviceinterfaceinfer::Inference>(sample);
+    }
+
     m_logger.LogInfo() << "Navigation::OnReceiveInfEvent: Infer data updated.";
     
-    if (m_latestInfData) {
-        auto timestamp = m_latestInfData->timestamp;
-        auto inferData = m_latestInfData->data;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_latestInfData) {
+            auto timestamp = m_latestInfData->timestamp;
+            auto inferData = m_latestInfData->data;
 
-        m_logger.LogInfo() << "Timestamp: " << timestamp;
+            m_logger.LogInfo() << "Timestamp: " << timestamp;
 
-        for (const auto& item : inferData) {
-            m_logger.LogInfo() << "Label : " << item.class_label
-                               << ", Prob : " << item.class_prob;
+            for (const auto& item : inferData) {
+                m_logger.LogInfo() << "Label : " << item.class_label
+                                   << ", Prob : " << item.class_prob;
+            }
+        } else {
+            m_logger.LogError() << "No latest infer data available.";
         }
-    } else {
-        m_logger.LogError() << "No latest infer data available.";
     }
 }
 
@@ -114,7 +121,12 @@ void Navigation::HandleNaviData() {
     while (m_running) {
         std::uint8_t retries = 0;
 
-        while (!m_latestInfData && retries < max_retries) {
+        while (retries < max_retries) {
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                if (m_latestInfData) break;
+            }
+            
             if (retries == 0) {
                 m_logger.LogInfo() << "HandleNaviData: Waiting for inference data...";
             }
@@ -122,56 +134,61 @@ void Navigation::HandleNaviData() {
             ++retries;
         }
 
-        if (!m_latestInfData) {
-            m_logger.LogError() << "HandleNaviData: No inference data available after "
-                                << max_retries << " retries.";
-            continue;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (!m_latestInfData) {
+                m_logger.LogError() << "HandleNaviData: No inference data available after "
+                                    << max_retries << " retries.";
+                continue;
+            }
+
+            const auto& inferData = m_latestInfData->data;
+
+            if (inferData.size() < 2) {
+                m_logger.LogError() << "HandleNaviData: Insufficient inference data.";
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                continue;
+            }
+
+            std::map<int, float> action_values;
+
+            for (const auto& item : inferData) {
+                action_values[item.class_label] = clamp(item.class_prob, -1.0f, 1.0f);
+            }
+
+            float steering_low = -30.0f;
+            float steering_high = 30.0f;
+            float speed_low = 1.0f;
+            float speed_high = 2.2f;
+
+            float scaled_angle = scale_continuous_value(
+                action_values[0], -1.0f, 1.0f, steering_low, steering_high);
+
+            float scaled_throttle = scale_continuous_value(
+                action_values[1], -1.0f, 1.0f, speed_low, speed_high);
+
+            deepracer::serviceinterfacecontrol::Control control_data;
+            control_data.data.angle = scaled_angle;
+            control_data.data.throttle = scaled_throttle;
+            control_data.timestamp = m_latestInfData->timestamp;
+            control_data.vehiclemode = m_latestInfData->vehiclemode;
+
+            m_logger.LogInfo() << "HandleNaviData: Angle = " << scaled_angle
+                               << ", Throttle = " << scaled_throttle;
+
+            m_PPortNavigation->WriteDataNavEvent(control_data);
+            m_PPortNavigation->SendEventNavEventTriggered();
+
+            m_logger.LogInfo() << "Control Data Sent: "
+                               << "Angle = " << control_data.data.angle
+                               << ", Throttle = " << control_data.data.throttle
+                               << ", Timestamp = " << control_data.timestamp;
         }
 
-        const auto& inferData = m_latestInfData->data;
-
-        if (inferData.size() < 2) {
-            m_logger.LogError() << "HandleNaviData: Insufficient inference data.";
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            continue;
-        }
-
-        std::map<int, float> action_values;
-
-        for (const auto& item : inferData) {
-            action_values[item.class_label] = clamp(item.class_prob, -1.0f, 1.0f);
-        }
-
-        float steering_low = -30.0f;
-        float steering_high = 30.0f;
-        float speed_low = 1.0f;
-        float speed_high = 2.2f;
-
-        float scaled_angle = scale_continuous_value(
-            action_values[0], -1.0f, 1.0f, steering_low, steering_high);
-
-        float scaled_throttle = scale_continuous_value(
-            action_values[1], -1.0f, 1.0f, speed_low, speed_high);
-
-        deepracer::serviceinterfacecontrol::Control control_data;
-        control_data.data.angle = scaled_angle;
-        control_data.data.throttle = scaled_throttle;
-        control_data.timestamp = m_latestInfData->timestamp;
-
-        m_logger.LogInfo() << "HandleNaviData: Angle = " << scaled_angle
-                           << ", Throttle = " << scaled_throttle;
-
-        m_PPortNavigation->WriteDataNavEvent(control_data);
-        m_PPortNavigation->SendEventNavEventTriggered();
-
-        m_logger.LogInfo() << "Control Data Sent: "
-                           << "Angle = " << control_data.data.angle
-                           << ", Throttle = " << control_data.data.throttle
-                           << ", Timestamp = " << control_data.timestamp;
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 }
+
 
 
 float Navigation::clamp(float value, float low, float high) {

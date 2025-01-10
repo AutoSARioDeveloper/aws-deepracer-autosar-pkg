@@ -59,6 +59,8 @@ private:
     void OnReceiveSFEvent(const deepracer::service::sensorfusion::proxy::events::SFEvent::SampleType& sample);
 
     void HandleInferData();
+
+    bool IsValidSensorFusion(const std::shared_ptr<deepracer::serviceinterfacefusion::SensorFusion>& data);
  
 private:
     bool m_running;
@@ -68,6 +70,8 @@ private:
     
     /// @brief Logger for software component
     ara::log::Logger& m_logger;
+
+    std::mutex m_mutex;
     
     /// @brief Instance of Port {Inference.PPortInference}
     std::shared_ptr<inference::aa::port::PPortInference> m_PPortInference;

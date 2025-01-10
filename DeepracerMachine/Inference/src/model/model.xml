@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<net name="model" version="10">
+<net name="PopcornsarVer6-model/model" version="10">
 	<layers>
 		<layer id="0" name="main_level/agent/main/online/network_1/sub/Output_0/Data_/copy_const" type="Const" version="opset1">
 			<data offset="0" size="2" shape="1,1,1" element_type="f16"/>
@@ -74,7 +74,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="6" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_0/MatMul/1_port_transpose1302_const" type="Const" version="opset1">
+		<layer id="6" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_0/MatMul/1_port_transpose1290_const" type="Const" version="opset1">
 			<data offset="6" size="4096" shape="256,8" element_type="f16"/>
 			<output>
 				<port id="1" precision="FP16">
@@ -143,7 +143,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="11" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_2/MatMul/1_port_transpose1294_const" type="Const" version="opset1">
+		<layer id="11" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/Dense_2/MatMul/1_port_transpose1302_const" type="Const" version="opset1">
 			<data offset="4614" size="131072" shape="256,256" element_type="f16"/>
 			<output>
 				<port id="1" precision="FP16">
@@ -212,7 +212,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="16" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/flatten_2/Reshape/Cast_11976_const" type="Const" version="opset1">
+		<layer id="16" name="main_level/agent/main/online/network_1/SECTOR_LIDAR/flatten_2/Reshape/Cast_11984_const" type="Const" version="opset1">
 			<data offset="136198" size="16" shape="2" element_type="i64"/>
 			<output>
 				<port id="1" precision="I64">
@@ -615,7 +615,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="40" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/flatten_3/Reshape/Cast_11984_const" type="Const" version="opset1">
+		<layer id="40" name="main_level/agent/main/online/network_1/STEREO_CAMERAS/flatten_3/Reshape/Cast_11982_const" type="Const" version="opset1">
 			<data offset="284026" size="16" shape="2" element_type="i64"/>
 			<output>
 				<port id="1" precision="I64">
@@ -662,7 +662,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="43" name="main_level/agent/main/online/network_1/middleware_fc_embedder/Dense_0/MatMul/1_port_transpose1290_const" type="Const" version="opset1">
+		<layer id="43" name="main_level/agent/main/online/network_1/middleware_fc_embedder/Dense_0/MatMul/1_port_transpose1294_const" type="Const" version="opset1">
 			<data offset="284042" size="11796480" shape="512,11520" element_type="f16"/>
 			<output>
 				<port id="1" precision="FP16">
@@ -856,7 +856,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="56" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_11978_const" type="Const" version="opset1">
+		<layer id="56" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_11976_const" type="Const" version="opset1">
 			<data offset="12081556" size="24" shape="3" element_type="i64"/>
 			<output>
 				<port id="1" precision="I64">
@@ -864,7 +864,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="57" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_21980_const" type="Const" version="opset1">
+		<layer id="57" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_21978_const" type="Const" version="opset1">
 			<data offset="12081580" size="24" shape="3" element_type="i64"/>
 			<output>
 				<port id="1" precision="I64">
@@ -872,7 +872,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="58" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_31982_const" type="Const" version="opset1">
+		<layer id="58" name="main_level/agent/main/online/network_1/ppo_head_0/strided_slice/Cast_31980_const" type="Const" version="opset1">
 			<data offset="12081604" size="24" shape="3" element_type="i64"/>
 			<output>
 				<port id="1" precision="I64">
@@ -1039,46 +1039,37 @@
 	<meta_data>
 		<MO_version value="2021.1.0-1237-bece22ac675-releases/2021/1"/>
 		<cli_parameters>
-			<caffe_parser_path value="DIR"/>
 			<data_type value="FP16"/>
 			<disable_fusing value="True"/>
 			<disable_gfusing value="True"/>
 			<disable_nhwc_to_nchw value="False"/>
-			<disable_omitting_optional value="False"/>
 			<disable_resnet_optimization value="False"/>
 			<disable_weights_compression value="False"/>
 			<enable_concat_optimization value="False"/>
-			<enable_flattening_nested_params value="False"/>
-			<enable_ssd_gluoncv value="False"/>
 			<extensions value="DIR"/>
 			<framework value="tf"/>
 			<freeze_placeholder_with_value value="{}"/>
 			<generate_deprecated_IR_V7 value="False"/>
-			<input value="main_level/agent/main/online/network_0/SECTOR_LIDAR/SECTOR_LIDAR,main_level/agent/main/online/network_0/STEREO_CAMERAS/STEREO_CAMERAS"/>
+			<input value="main_level/agent/main/online/network_0/STEREO_CAMERAS/STEREO_CAMERAS,main_level/agent/main/online/network_0/SECTOR_LIDAR/SECTOR_LIDAR"/>
 			<input_model value="DIR/model.pb"/>
 			<input_model_is_text value="False"/>
-			<input_shape value="[1,8],[1,120,160,2]"/>
-			<k value="DIR/CustomLayersMapping.xml"/>
+			<input_shape value="[1,120,160,2],[1,8]"/>
 			<keep_shape_ops value="True"/>
-			<legacy_mxnet_model value="False"/>
 			<log_level value="ERROR"/>
 			<mean_scale_values value="{}"/>
 			<mean_values value="()"/>
-			<model_name value="DIR"/>
+			<model_name value="PopcornsarVer6-model/model"/>
 			<output_dir value="DIR"/>
 			<placeholder_data_types value="{}"/>
-			<placeholder_shapes value="{'main_level/agent/main/online/network_0/SECTOR_LIDAR/SECTOR_LIDAR': array([1, 8]), 'main_level/agent/main/online/network_0/STEREO_CAMERAS/STEREO_CAMERAS': array([  1, 120, 160,   2])}"/>
+			<placeholder_shapes value="{'main_level/agent/main/online/network_0/STEREO_CAMERAS/STEREO_CAMERAS': array([  1, 120, 160,   2]), 'main_level/agent/main/online/network_0/SECTOR_LIDAR/SECTOR_LIDAR': array([1, 8])}"/>
 			<progress value="False"/>
-			<remove_memory value="False"/>
-			<remove_output_softmax value="False"/>
 			<reverse_input_channels value="False"/>
-			<save_params_from_nd value="False"/>
 			<scale value="1.0"/>
 			<scale_values value="()"/>
 			<silent value="False"/>
 			<static_shape value="False"/>
 			<stream_output value="False"/>
-			<unset unset_cli_parameters="batch, counts, finegrain_fusing, input_checkpoint, input_meta_graph, input_proto, input_symbol, mean_file, mean_file_offsets, move_to_preprocess, nd_prefix_name, output, pretrained_model_name, saved_model_dir, saved_model_tags, tensorboard_logdir, tensorflow_custom_layer_libraries, tensorflow_custom_operations_config_update, tensorflow_object_detection_api_pipeline_config, tensorflow_use_custom_operations_config, transformations_config"/>
+			<unset unset_cli_parameters="batch, finegrain_fusing, input_checkpoint, input_meta_graph, move_to_preprocess, output, saved_model_dir, saved_model_tags, tensorboard_logdir, tensorflow_custom_layer_libraries, tensorflow_custom_operations_config_update, tensorflow_object_detection_api_pipeline_config, tensorflow_use_custom_operations_config, transformations_config"/>
 		</cli_parameters>
 	</meta_data>
 </net>
